@@ -12,6 +12,13 @@ namespace ST.SimModels
         public string Name { get; set; }
         public List<Scripture> Scriptures { get; set; }
         public virtual List<Tenant> Tenants { get; set; }
+
+        public Religion()
+        {
+            Id = Guid.NewGuid();
+            Scriptures = new List<Scripture>();
+            Tenants = new List<Tenant>();
+        }
     }
 
     public class PercievedReligion:Base
@@ -28,9 +35,30 @@ namespace ST.SimModels
         public List<Guid> SupportedByIds { get; set; }
         public List<PercievedReligion> SupportedBy { get; set; }
 
+        public PercievedReligion()
+        {
+            PercievedTenantIds = new List<Guid>();
+            PercievedTenants = new List<Tenant>();
+            SupportsIds = new List<Guid>();
+            Supports = new List<PercievedReligion>();
+            SupportedByIds = new List<Guid>();
+            SupportedBy = new List<PercievedReligion>();
+        }
+
         public override string ToString()
         {
-            return "The religion of " + Religion.Name + ", led by Prophet " + Prophet.Name;
+            string str = "The religion of " + Religion.Name;
+            if (Prophet != null) {
+                str += Environment.NewLine + "  -Led by Prophet " + Prophet.Name;
+            }
+            if (PercievedTenants.Any())
+            {
+                foreach(var tenant in PercievedTenants)
+                {
+                    str += Environment.NewLine + "  -" + tenant.Level.ToString() + " Ideal of " + tenant.Ideal.Name + ".  \"" + tenant.Ideal.Description + "\"";
+                }                
+            }
+            return str;
         }
     }
 }

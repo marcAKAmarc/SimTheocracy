@@ -16,12 +16,14 @@ namespace ST.SimModels
 
         public Person()
         {
+            KnownReligions = new List<PercievedReligion>();
         }
 
         public Person(Random random)
         {
             this.NewName(random);
             Id = Guid.NewGuid();
+            KnownReligions = new List<PercievedReligion>();
         }
 
         public override string ToString()

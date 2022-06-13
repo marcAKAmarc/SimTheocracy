@@ -34,6 +34,9 @@ namespace ST.GameModel
             public string Text;
             public List<TextOption> Options;
 
+            public bool TakeTypedInput;
+            public ProphetAction TypedInputAction;
+
             public TextPrompt(Prophet prophet) : base(prophet) { }
 
             public ProphetAction action;
@@ -66,11 +69,26 @@ namespace ST.GameModel
             public Prophet proselytizingProphet;
             public Base Learned;
 
+            public Religion WritingRenouncedReligion;
+            public Tenant WritingTenant;
+            public bool WritingExperience;
+
+            public string TypedText;
+
+            public List<Religion> DebugAllReligions;
+            public List<Person> DebugAllPeople;
+
             public void Reset()
             {
                 proselytizingProphets = new List<Prophet>();
                 proselytizingProphet = null;
                 Learned = null;
+
+                WritingRenouncedReligion = null;
+                WritingTenant = null;
+                WritingExperience = false;
+
+                TypedText = "";
             }
         }
     }

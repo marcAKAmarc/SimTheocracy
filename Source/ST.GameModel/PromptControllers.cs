@@ -25,6 +25,17 @@ namespace ST.GameModel
                  args);
         }
 
+        public PromptControllerResult Review(ActionArgs args)
+        {
+            return GoTo(PromptViews.ReviewData(args), args);
+        }
+        public PromptControllerResult ReviewDebugReligion(ActionArgs args)
+        {
+            args.DebugAllReligions = Game.religions;
+            args.DebugAllPeople = Game.Provinces.SelectMany(x => x.People).ToList();
+            return GoTo(PromptViews.DebugReviewReligion(args), args);
+        }
+
         public PromptControllerResult GoToHolyMountain(ActionArgs args)
         {
             var result = args.playerProphet.GoToHolyMountain(args.random);
@@ -67,11 +78,47 @@ namespace ST.GameModel
             args.playerProphet.Proselytize(args.random);
             return GoTo(PromptViews.PlazaProsetylize(args), args);
         }
-        /*public static PromptControllerResult PlazaObserve(ActionArgs args)
-        {
 
-            return GoTo(PromptViews)
-        }*/
+        public PromptControllerResult WriteScriptureOptions(ActionArgs args)
+        {
+            return GoTo(PromptViews.WriteScriptureOptions(args), args);
+        }
+
+        public PromptControllerResult WriteScriptureText(ActionArgs args)
+        {
+            return GoTo(PromptViews.WriteScriptureText(args), args);
+        }
+
+        public PromptControllerResult WriteScriptureChooseExperience(ActionArgs args)
+        {
+            args.WritingExperience = true;
+            return GoTo(PromptViews.WriteScriptureText(args), args);
+        }
+        public PromptControllerResult WriteScriptureChooseReligion(ActionArgs args, PercievedReligion religion)
+        {
+            args.WritingRenouncedReligion = religion.Religion;
+            return GoTo(PromptViews.WriteScriptureText(args), args);
+        }
+        public PromptControllerResult WriteScriptureChooseTenant(ActionArgs args, Tenant tenant)
+        {
+            args.WritingTenant = tenant;
+            return GoTo(PromptViews.WriteScriptureText(args), args);
+        }
+        public PromptControllerResult WriteScriptureExperience(ActionArgs args)
+        {
+            args.playerProphet.WriteScripture(args.random, new List<Tenant>(), new List<Religion>(), 1, args.TypedText);
+            return GoTo(PromptViews.ScriptureWritten(args), args);
+        }
+        public PromptControllerResult WriteScriptureRenounce(ActionArgs args)
+        {
+            args.playerProphet.WriteScripture(args.random, new List<Tenant>(), new List<Religion>() { args.WritingRenouncedReligion }, -1, args.TypedText);
+            return GoTo(PromptViews.ScriptureWritten(args), args);
+        }
+        public PromptControllerResult WriteScriptureTenant(ActionArgs args)
+        {
+            args.playerProphet.WriteScripture(args.random, new List<Tenant>() { args.WritingTenant }, new List<Religion>(), 3, args.TypedText);
+            return GoTo(PromptViews.ScriptureWritten(args), args);
+        }
 
         public static PromptControllerResult GoTo( TextPrompt textPrompt, ActionArgs actionArgs)
         {

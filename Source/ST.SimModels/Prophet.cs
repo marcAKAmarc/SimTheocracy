@@ -143,11 +143,27 @@ namespace ST.SimModels
                         prophet.Religion.Tenants.First(pt => !KnownReligions.First(x => x.Id == prophet.Religion.Id).PercievedTenants.Any(t => t.Id == pt.Id))
                     );
 
-                    return KnownReligions.First(x => x.Id == prophet.Religion.Id).PercievedTenants.Last();
+                    return KnownReligions.First(x => x.Id == prophet.Religion.Id);
                 }
             }
 
             return null;
+        }
+
+        public void WriteScripture(Random random, List<Tenant> tenants, List<Religion> RenouncedReligions, int DivinityAdd, string text)
+        {
+            State = ProphetState.Writing;
+            Religion.Scriptures.Add(new Scripture() { Text = text, Tenants = tenants, Divinity = DivinityAdd, RenouncedReligions = RenouncedReligions });
+            foreach(var t in tenants)
+            {
+                RecievedTenants = RecievedTenants.Where(x => x.Id != t.Id).ToList();
+            }
+
+            ActionResult = new ActionResult()
+            {
+                DivinationChange = -DivinityAdd
+            };
+            Divination -= DivinityAdd;
         }
 
         public bool CheckAttacked(Random random)
@@ -168,6 +184,23 @@ namespace ST.SimModels
         public void Proselytize(Random random)
         {
             State = ProphetState.Reciting;
+
+            var probability = Math.Max(Religion.Scriptures.Count / 30, .25);
+
+            int followerChange = 0;
+            foreach (var person in CurrentLocation.People.Where(x=>x.Religion.Id != Religion.Id))
+            {
+                if(random.Next(100) < probability * 100)
+                {
+                    person.Religion = Religion;
+                    followerChange += 1;
+                }
+            }
+
+            ActionResult = new ActionResult()
+            {
+                FollowingChange = followerChange
+            };
         }
 
         

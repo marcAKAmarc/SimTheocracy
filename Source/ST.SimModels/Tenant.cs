@@ -23,9 +23,14 @@ namespace ST.SimModels
         public Ideal Ideal { get; set; }
         public TenantLevel Level { get; set; } 
 
+        public Tenant()
+        {
+            Id = Guid.NewGuid();
+        }
+
         public override string ToString()
         {
-            return Ideal.Name + "; " + "All followers must: " + Ideal.Description + ".  This is " + Level.ToString();
+            return Ideal.Name + "; " + "All followers must: " + Ideal.Description + "  This is " + Level.ToString() + ".";
         }
     }
 
@@ -58,7 +63,7 @@ namespace ST.SimModels
     public static class Ideals
     {
         public static readonly Ideal YHWH = new Ideal() { Name = "YHWH", Description = "Follow the diety Yaweh.", IdealType = IdealType.Diety };
-        public static readonly Ideal Allah = new Ideal() { Name = "Allah", Description = "Follow the diety Allah. ", IdealType = IdealType.Diety };
+        public static readonly Ideal Allah = new Ideal() { Name = "Allah", Description = "Follow the diety Allah.", IdealType = IdealType.Diety };
         public static readonly Ideal AlLat = new Ideal() { Name = "Al-Lat", Description = "Follow the diety Al-Lat.", IdealType = IdealType.Diety };
         public static readonly Ideal Insular = new Ideal() { Name = "Insularity", Description = "Socialize only with those of this faith.", IdealType = IdealType.Tradition };
         public static readonly Ideal WeeklyFast = new Ideal() { Name = "Weekly Fast", Description = "Fast once a week from sunrise to sunset.", IdealType = IdealType.Tradition };

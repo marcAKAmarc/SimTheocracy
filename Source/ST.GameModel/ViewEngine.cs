@@ -39,7 +39,7 @@ namespace ST.GameModel
                 Step();
             }
         }
-
+        
         public void Step()
         {
             if (currentPrompt == null)
@@ -56,7 +56,10 @@ namespace ST.GameModel
                     currentPrompt
                 );
 
-                ProcessResponse();
+                if (!currentPrompt.TakeTypedInput)
+                    ProcessOptionResponse();
+                else
+                    ProcessTextResponse();
             }
         }
 
@@ -80,14 +83,40 @@ namespace ST.GameModel
                 NiceWriter.WriteLine(i + ":  " + prompt.Options[i].Text);
             }
         }
+        public void ProcessTextResponse()
+        {
+            string response;
+            if(FlowType == FlowType.Human)
+            {
+                response = ProcessTextResponseHuman();
+            }
+            else
+            {
+                response = ProcessTextResponseNPC();
+            }
 
-        public void ProcessResponse()
+            ActionArgs.TypedText = response;
+
+            PromptControllerResult result;
+
+            if (currentPrompt.TypedInputAction == null)
+                result = null;
+            else
+                result = currentPrompt.TypedInputAction(ActionArgs);
+
+            if (result == null)
+                currentPrompt = null;
+            else
+                currentPrompt = result.TextPrompt;
+        }
+        public void ProcessOptionResponse()
         {
             int response;
+            string textResponse;
             if (FlowType == FlowType.Human)
-                response = ProcessResponseHuman();
+                response = ProcessOptionResponseHuman();
             else
-                response = ProcessResponseNpc(Game.Random);
+                response = ProcessOptionResponseNpc(Game.Random);
 
             PromptControllerResult result;
             if (currentPrompt.Options?.Count >= 1 && currentPrompt.Options[response].action != null)
@@ -105,7 +134,7 @@ namespace ST.GameModel
                 currentPrompt = result.TextPrompt;
         }
 
-        public int ProcessResponseHuman()
+        public int ProcessOptionResponseHuman()
         {
             int response = -1;
             string typed = Console.ReadLine();
@@ -125,7 +154,17 @@ namespace ST.GameModel
             return response;
         }
 
-        public int ProcessResponseNpc(Random random)
+        public string ProcessTextResponseHuman()
+        {
+            return Console.ReadLine();
+        }
+
+        public string ProcessTextResponseNPC()
+        {
+            return "Toilet Data";
+        }
+
+        public int ProcessOptionResponseNpc(Random random)
         {
             int response = -1;
             if(currentPrompt.Options?.Count >= 1)
@@ -141,32 +180,85 @@ namespace ST.GameModel
 
         public static void WriteLine(string value)
         {
-            Console.WriteLine(WordWrap(value));
+            Console.WriteLine(WordWrap(value, 100));
 
             
         }
 
-        public static string WordWrap(string text)
+        /// <summary>
+        /// Word wraps the given text to fit within the specified width.
+        /// </summary>
+        /// <param name="text">Text to be word wrapped</param>
+        /// <param name="width">Width, in characters, to which the text
+        /// should be word wrapped</param>
+        /// <returns>The modified text</returns>
+        public static string WordWrap(string text, int width)
         {
-            String[] words = text.Split(' ');
-            StringBuilder buffer = new StringBuilder();
+            int pos, next;
+            StringBuilder sb = new StringBuilder();
 
-            foreach (String word in words)
+            // Lucidity check
+            if (width < 1)
+                return text;
+
+            // Parse each line of text
+            for (pos = 0; pos < text.Length; pos = next)
             {
-                buffer.Append(word);
+                // Find end of line
+                int eol = text.IndexOf(Environment.NewLine, pos);
+                if (eol == -1)
+                    next = eol = text.Length;
+                else
+                    next = eol + Environment.NewLine.Length;
 
-                if (buffer.Length >= 80)
+                // Copy this line of text, breaking into smaller lines as needed
+                if (eol > pos)
                 {
-                    String line = buffer.ToString().Substring(0, buffer.Length - word.Length);
-                    Console.WriteLine(line);
-                    buffer.Clear();
-                    buffer.Append(word);
+                    do
+                    {
+                        int len = eol - pos;
+                        if (len > width)
+                            len = BreakLine(text, pos, width);
+                        sb.Append(text, pos, len);
+                        sb.Append(Environment.NewLine);
+
+                        // Trim whitespace following break
+                        pos += len;
+                        while (pos < eol && Char.IsWhiteSpace(text[pos]))
+                            pos++;
+                    } while (eol > pos);
                 }
-
-                buffer.Append(" ");
-
+                else sb.Append(Environment.NewLine); // Empty line
             }
-            return buffer.ToString();
+            return sb.ToString();
         }
+
+        /// <summary>
+        /// Locates position to break the given line so as to avoid
+        /// breaking words.
+        /// </summary>
+        /// <param name="text">String that contains line of text</param>
+        /// <param name="pos">Index where line of text starts</param>
+        /// <param name="max">Maximum line length</param>
+        /// <returns>The modified line length</returns>
+        private static int BreakLine(string text, int pos, int max)
+        {
+            // Find last whitespace in line
+            int i = max;
+            while (i >= 0 && !Char.IsWhiteSpace(text[pos + i]))
+                i--;
+
+            // If no whitespace found, break at maximum length
+            if (i < 0)
+                return max;
+
+            // Find start of whitespace
+            while (i >= 0 && Char.IsWhiteSpace(text[pos + i]))
+                i--;
+
+            // Return length of text before whitespace
+            return i + 1;
+        }
+
     }
 }

@@ -11,5 +11,12 @@ namespace ST.SimModels
         public Guid Id { get; set; }
         public string Text { get; set; }
         public List<Tenant> Tenants { get; set; }
+        public List<Religion> RenouncedReligions { get; set; }
+        public int Divinity {get; set;}
+
+        public Scripture()
+        {
+            Id = new Guid();
+        }
     }
 }
