@@ -24,18 +24,18 @@ namespace ST.GameModel
 
                     new TextOption(args.playerProphet){
                         Text = "Go to the Holy Mountain...",
-                        action = args.controller.GoToHolyMountain
+                        Action = args.controller.GoToHolyMountain
                     },
 
                     new TextOption(args.playerProphet){
                         Text = "Go to a Plaza...",
-                        action = args.controller.GoToPlaza
+                        Action = args.controller.GoToPlaza
                     },
 
                     new TextOption(args.playerProphet)
                     {
                         Text = "Review information...",
-                        action = args.controller.Review
+                        Action = args.controller.Review
                     }
                 }
             };
@@ -47,10 +47,50 @@ namespace ST.GameModel
                     new TextOption(args.playerProphet)
                     {
                         Text = "Write scripture...",
-                        action = args.controller.WriteScriptureOptions
+                        Action = args.controller.WriteScriptureOptions
                     }
                 );
             }
+            return root;
+        }
+
+        public static TextPrompt EndOfDayReport(ActionArgs args)
+        {
+            var root = new TextPrompt(args.playerProphet)
+            {
+                Text = "Prophet " + args.playerProphet.Name + " arrives at their residence in " + args.playerProphet.Residence + "."
+            };
+            if(args.Followers.Count > 0)
+            {
+                root.Text += "  The prophet has " + args.Followers.Count.ToString() + " followers, ";
+
+                if (args.Followers.Count < Game.FollowersMinimumSecurity)
+                    root.Text += " not even enough to provide security for venturing into other provinces.";
+                else if(args.Followers.Count < Game.FollowersMinimumSecurity + (Game.FollowersMinimumTemple - Game.FollowersMinimumTemple)/2)
+                {
+                    root.Text += " just barely enough to provide security.";
+                }else if(args.Followers.Count < Game.FollowersMinimumTemple)
+                {
+                    root.Text += " almost enough to run a temple.";
+                }
+                else if(args.Followers.Count >= Game.FollowersMinimumTemple)
+                {
+                    root.Text += " just enough to run a temple.";
+                }
+
+                foreach(var report in args.Followers.SelectMany(f => f.EventReports).Distinct(EventReport.Comparer))
+                {
+                    var peopleWithReport = args.Followers.Where(x => x.EventReports.Any(er => er.Id == report.Id)).ToList();
+                    var person = peopleWithReport[args.random.Next(peopleWithReport.Count)];
+                    root.Text += Environment.NewLine + person.Name + ", a follower of " + args.playerProphet.Religion.Name + ", brings news:  " +
+                        report.Text;
+                }
+            }
+            else
+            {
+                root.Text += "  The Prophet reflects on their complete lack of no followers.  Something must be done.";
+            }
+
             return root;
         }
 
@@ -64,22 +104,24 @@ namespace ST.GameModel
                     new TextOption(args.playerProphet)
                     {
                         Text = "Debug - Religion Following Breakdown",
-                        action = args.controller.ReviewDebugReligion
+                        Action = args.controller.ReviewDebugReligionRanks
                     },
                     new TextOption(args.playerProphet)
                     {
-                        Text = "About " + args.playerProphet.Name
+                        Text = "About " + args.playerProphet.Name,
+                        Action = args.controller.ReviewSelf
                     },
                     new TextOption(args.playerProphet)
                     {
-                        Text = "About " + args.playerProphet.Religion
+                        Text = "About " + args.playerProphet.Religion,
+                        Action = args.controller.ReviewReligion
                     }
                 }
             };
             return root;
         }
 
-        public static TextPrompt DebugReviewReligion(ActionArgs args)
+        public static TextPrompt DebugReviewReligionRanks(ActionArgs args)
         {
             var root = new TextPrompt(args.playerProphet)
             {
@@ -91,6 +133,29 @@ namespace ST.GameModel
                 root.Text += score.Name + " - " + args.DebugAllPeople.Count(x => x.Religion.Id == score.Id) + " followers.";
                 root.Text += Environment.NewLine;
             }
+
+            root.Action = args.controller.NewDay;
+            return root;
+        }
+
+        public static TextPrompt ReviewReligion(ActionArgs args)
+        {
+            var root = new TextPrompt(args.playerProphet)
+            {
+                Text = "The Prophet " + args.playerProphet.Name + " reviews the sacred way of life..." + Environment.NewLine + args.playerProphet.Religion.About(),
+                Action = args.controller.NewDay
+            };
+
+            return root;
+        }
+
+        public static TextPrompt ReviewSelf(ActionArgs args)
+        {
+            var root = new TextPrompt(args.playerProphet)
+            {
+                Text = "The Prophet " + args.playerProphet.Name + " takes a moment to collect themself..." + Environment.NewLine + args.playerProphet.About(),
+                Action = args.controller.NewDay
+            };
             return root;
         }
 
@@ -134,7 +199,7 @@ namespace ST.GameModel
                 result.Add(
                     new TextOption(args.playerProphet) {
                         Text = destination.Name,
-                        action = (a) => args.controller.GoToPlazaWithDest(args, destination)
+                        Action = (a) => args.controller.GoToPlazaWithDest(args, destination)
                     }
                 );
             }
@@ -165,7 +230,7 @@ namespace ST.GameModel
                     new TextOption(args.playerProphet)
                     {
                         Text = "Proselytize",
-                        action = args.controller.Proselytize
+                        Action = args.controller.Proselytize
                     },
                     new TextOption(args.playerProphet)
                     {
@@ -188,7 +253,7 @@ namespace ST.GameModel
                     new TextOption(args.playerProphet)
                     {
                         Text = "Listen to " + proph.Name + " recite scripture",
-                        action = (a) => args.controller.ListenToProphet(args, proph)
+                        Action = (a) => args.controller.ListenToProphet(args, proph)
                     }
                 );
             }
@@ -233,7 +298,7 @@ namespace ST.GameModel
                 {
                     root.Text += " " + scriptureWords[i];
                 }
-                root.Text += "...";
+                root.Text += "...\"";
 
                 root.Text += Environment.NewLine + "The prophet steps down, and surveys the crowd that still surrounds the discarded crate.  Have they been swayed?"
                     + Environment.NewLine + args.playerProphet.ActionResult.ToString();
@@ -260,7 +325,7 @@ namespace ST.GameModel
                     new TextOption(args.playerProphet)
                     {
                         Text = "Write of experiences on the holy mountain.",
-                        action = args.controller.WriteScriptureChooseExperience
+                        Action = args.controller.WriteScriptureChooseExperience
                     }
                 );
             }
@@ -270,7 +335,7 @@ namespace ST.GameModel
                     new TextOption(args.playerProphet)
                     {
                         Text = "Write of divine tenant:  " + gatheredTenant.Ideal.Description,
-                        action = (a) => args.controller.WriteScriptureChooseTenant(args, gatheredTenant)
+                        Action = (a) => args.controller.WriteScriptureChooseTenant(args, gatheredTenant)
                     }
                 );
             }
@@ -280,7 +345,7 @@ namespace ST.GameModel
                     new TextOption(args.playerProphet)
                     {
                         Text = "Renounce the religion of " + renouncable.Religion.Name,
-                        action = (a) => args.controller.WriteScriptureChooseReligion(args, renouncable)
+                        Action = (a) => args.controller.WriteScriptureChooseReligion(args, renouncable)
                     }
                 );
             }

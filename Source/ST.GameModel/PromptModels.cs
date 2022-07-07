@@ -39,7 +39,7 @@ namespace ST.GameModel
 
             public TextPrompt(Prophet prophet) : base(prophet) { }
 
-            public ProphetAction action;
+            public ProphetAction Action;
         }
 
         public class TextOption : PromptBase
@@ -52,7 +52,7 @@ namespace ST.GameModel
 
             public bool HideIfRequirementNotMet = true;
 
-            public ProphetAction action;
+            public ProphetAction Action;
 
             public TextOption(Prophet prophet) : base(prophet) { }
         }
@@ -74,6 +74,8 @@ namespace ST.GameModel
             public bool WritingExperience;
 
             public string TypedText;
+
+            public List<Person> Followers;
 
             public List<Religion> DebugAllReligions;
             public List<Person> DebugAllPeople;

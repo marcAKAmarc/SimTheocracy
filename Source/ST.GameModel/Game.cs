@@ -15,6 +15,9 @@ namespace ST.GameModel
         public List<Religion> religions;
         public List<Prophet> Prophets;
 
+        public static int FollowersMinimumSecurity = 3;
+        public static int FollowersMinimumTemple = 20;
+
         public Prophet HumanPlayer;
     
         public void Setup()
@@ -61,7 +64,7 @@ namespace ST.GameModel
 
 
 
-            for (var i = 0; i < 6; i++)
+            for (var i = 0; i < 5; i++)
             {
                 Provinces.Add(new Province());
                 switch (i)
@@ -90,9 +93,11 @@ namespace ST.GameModel
                 people.Add(new Person(Random) { Religion = religions[Random.Next(religions.Count)], Residence = Provinces[Random.Next(Provinces.Count)] });
 
                 people.Last().Residence.People.Add(people.Last());
+
+                people.Last().Religion.Followers.Add(people.Last());
             }
 
-            for (var i = 0; i < religions.Count; i++)
+            for (var i = 0; i < 4; i++)
             {
                 Prophets.Add(new Prophet(Random) { Religion = religions[i], Residence = Provinces[Random.Next(Provinces.Count)] });
 

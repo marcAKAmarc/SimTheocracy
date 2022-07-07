@@ -24,16 +24,28 @@ namespace ST.GameModel
                  PromptViews.NewDay(args),
                  args);
         }
-
+        public PromptControllerResult EndOfDayReport(ActionArgs args)
+        {
+            args.Followers = Game.Provinces.SelectMany(x => x.People).Where(x => x.Religion.Id == args.playerProphet.Religion.Id).ToList();
+            return GoTo(PromptViews.EndOfDayReport(args), args);
+        }
         public PromptControllerResult Review(ActionArgs args)
         {
             return GoTo(PromptViews.ReviewData(args), args);
         }
-        public PromptControllerResult ReviewDebugReligion(ActionArgs args)
+        public PromptControllerResult ReviewDebugReligionRanks(ActionArgs args)
         {
             args.DebugAllReligions = Game.religions;
             args.DebugAllPeople = Game.Provinces.SelectMany(x => x.People).ToList();
-            return GoTo(PromptViews.DebugReviewReligion(args), args);
+            return GoTo(PromptViews.DebugReviewReligionRanks(args), args);
+        }
+        public PromptControllerResult ReviewReligion(ActionArgs args)
+        {
+            return GoTo(PromptViews.ReviewReligion(args), args);
+        }
+        public PromptControllerResult ReviewSelf(ActionArgs args)
+        {
+            return GoTo(PromptViews.ReviewSelf(args), args);
         }
 
         public PromptControllerResult GoToHolyMountain(ActionArgs args)

@@ -8,6 +8,9 @@ namespace ST.SimModels
 {
     public class Base
     {
-
+        public virtual string About()
+        {
+            return "not implemented";
+        }
     }
 }

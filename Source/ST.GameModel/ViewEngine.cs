@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using static ST.GameModel.PromptModels;
 
@@ -32,15 +33,9 @@ namespace ST.GameModel
 
         }
 
-        public void Go()
-        {
-            while (true)
-            {
-                Step();
-            }
-        }
         
-        public void Step()
+        
+        public void DayActivity()
         {
             if (currentPrompt == null)
             {
@@ -56,11 +51,28 @@ namespace ST.GameModel
                     currentPrompt
                 );
 
-                if (!currentPrompt.TakeTypedInput)
+                if (currentPrompt.Options != null && currentPrompt.Options.Any())
                     ProcessOptionResponse();
-                else
+                else if (currentPrompt.TakeTypedInput)
                     ProcessTextResponse();
+                else
+                    ProcessAction();
             }
+        }
+
+        public void EndOfDayReport()
+        {
+            var result = PromptControllers.EndOfDayReport(ActionArgs);
+            ActionArgs = result.ActionArgs;
+            DisplayView(
+                PromptViews.EndOfDayReport(ActionArgs)
+            );
+            if (currentPrompt.Options != null && currentPrompt.Options.Any())
+                ProcessOptionResponse();
+            else if (currentPrompt.TakeTypedInput)
+                ProcessTextResponse();
+            else
+                ProcessAction();
         }
 
         public void Reset()
@@ -83,6 +95,26 @@ namespace ST.GameModel
                 NiceWriter.WriteLine(i + ":  " + prompt.Options[i].Text);
             }
         }
+
+        public void ProcessAction()
+        {
+            if(FlowType == FlowType.Human)
+                Console.ReadLine();
+            if (FlowType == FlowType.NPC_Observable)
+                Thread.Sleep(4000);
+
+            PromptControllerResult result = null;
+            if (currentPrompt.Action != null)
+                result = currentPrompt.Action(ActionArgs);
+            else
+                result = null;
+
+            if (result == null)
+                currentPrompt = null;
+            else
+                currentPrompt = result.TextPrompt;
+        }
+
         public void ProcessTextResponse()
         {
             string response;
@@ -92,6 +124,8 @@ namespace ST.GameModel
             }
             else
             {
+                if (FlowType == FlowType.NPC_Observable)
+                    Thread.Sleep(4000);
                 response = ProcessTextResponseNPC();
             }
 
@@ -112,16 +146,19 @@ namespace ST.GameModel
         public void ProcessOptionResponse()
         {
             int response;
-            string textResponse;
+
             if (FlowType == FlowType.Human)
                 response = ProcessOptionResponseHuman();
             else
-                response = ProcessOptionResponseNpc(Game.Random);
-
-            PromptControllerResult result;
-            if (currentPrompt.Options?.Count >= 1 && currentPrompt.Options[response].action != null)
             {
-                result = currentPrompt.Options[response].action(ActionArgs);
+                if (FlowType == FlowType.NPC_Observable)
+                    Thread.Sleep(4000);
+                response = ProcessOptionResponseNpc(Game.Random);
+            }
+            PromptControllerResult result;
+            if (currentPrompt.Options?.Count >= 1 && currentPrompt.Options[response].Action != null)
+            {
+                result = currentPrompt.Options[response].Action(ActionArgs);
             }
             else
             {

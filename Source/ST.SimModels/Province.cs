@@ -20,6 +20,7 @@ namespace ST.SimModels
                 Provinces = new List<Province>();
             Provinces.Add(this);
             People = new List<Person>();
+            Id = Guid.NewGuid();
         }
 
         public override string ToString()
@@ -36,6 +37,11 @@ namespace ST.SimModels
         {
             return People.SelectMany(x => x.Religion.Tenants).Count(localTen => !tenants.Any(myTen => !myTen.AmenableToTenant(localTen)))
                 / People.SelectMany(x => x.Religion.Tenants).Count();
+        }
+
+        public float GetIntolerantAgainstDemographic(Religion religion)
+        {
+
         }
     }
 }

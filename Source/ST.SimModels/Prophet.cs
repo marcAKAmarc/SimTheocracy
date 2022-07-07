@@ -51,7 +51,7 @@ namespace ST.SimModels
 
     public class Prophet : Person
     {
-        public int Following { get; set; }
+        public int Following { get { return GetFollowing(); } set { return; } }
         public int Divination { get; set; }
         public int Donations { get; set; }
 
@@ -78,6 +78,42 @@ namespace ST.SimModels
             return "Prophet " + Name + ", leader of the religion of " + Religion.Name;
         }
 
+        public override string About()
+        {
+            var str = this.ToString();
+            str += Environment.NewLine;
+            str += "Following:  " + Following.ToString();
+            str += Environment.NewLine;
+            str += "Divinity:  " + Divination.ToString();
+            str += Environment.NewLine;
+            str += "Donations:  " + Donations.ToString();
+            str += Environment.NewLine;
+            if (RecievedTenants.Count > 0)
+            {
+                str += "The Prophet has " + RecievedTenants.Count + " tenants recieved from the divine that have yet to be transcribed:" + Environment.NewLine;
+                foreach (var t in RecievedTenants)
+                {
+                    str += t.ToString();
+                    str += Environment.NewLine;
+                }
+            }
+            if(KnownProphets.Count > 0)
+            {
+                str += "The Prophet has encountered " + KnownProphets.Count + " other \"prophets\":" + Environment.NewLine;
+                foreach(var p in KnownProphets)
+                {
+                    str += p.ToString();
+                    str += Environment.NewLine;
+                }
+            }
+
+            return str;
+                
+        }
+        private int GetFollowing()
+        {
+            return Religion.Followers.Count;
+        }
         public void GoHome()
         {
             State = ProphetState.AtResidence;
@@ -157,6 +193,7 @@ namespace ST.SimModels
             foreach(var t in tenants)
             {
                 RecievedTenants = RecievedTenants.Where(x => x.Id != t.Id).ToList();
+                Religion.Tenants.Add(t);
             }
 
             ActionResult = new ActionResult()
@@ -183,18 +220,55 @@ namespace ST.SimModels
 
         public void Proselytize(Random random)
         {
+            if (Religion.Scriptures.Count == 0)
+                return;
+
             State = ProphetState.Reciting;
 
             var probability = Math.Max(Religion.Scriptures.Count / 30, .25);
 
-            int followerChange = 0;
+            int followersBefore = Following;
+
+            //already of religion cache
+            var already = CurrentLocation.People.Where(x => x.Religion.Id == Religion.Id);
+
+
             foreach (var person in CurrentLocation.People.Where(x=>x.Religion.Id != Religion.Id))
             {
                 if(random.Next(100) < probability * 100)
                 {
-                    person.Religion = Religion;
-                    followerChange += 1;
+                    person.Convert(Religion);
                 }
+            }
+
+            int followerChange = Following - followersBefore;
+
+            //event report
+            var sawEvent = new EventReport()
+            {
+                LearnableItems = new List<Base>()
+                {
+                    Religion
+                },
+                Text = "Today, I saw " + followerChange + " people get converted to the religion of " + Religion.Name + " in the plaza of " + CurrentLocation + "."
+            };
+            var wasEvent = new EventReport()
+            {
+                LearnableItems = new List<Base>()
+                {
+                    Religion
+                },
+                Text = "Along with " + followerChange + " people, I was converted to the religion of " + Religion.Name + " in the plaza of " + CurrentLocation + "!"
+            };
+
+
+            //saw conversions
+            foreach (var person in CurrentLocation.People.Where(x=>x.Religion.Id!=Religion.Id))
+            {
+                person.RememberEvent(sawEvent);
+            }
+            foreach (var person in CurrentLocation.People.Where(x=>x.Religion.Id == Religion.Id  && !already.Any(p=>p.Id == x.Id))){
+                person.RememberEvent(wasEvent);
             }
 
             ActionResult = new ActionResult()

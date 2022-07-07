@@ -33,7 +33,11 @@ namespace ST.FrontEndConsole
                 PlayerEngines.Shuffle(Game.Random);
                 foreach(var playerengine in PlayerEngines)
                 {
-                    playerengine.Step();
+                    playerengine.DayActivity();
+                }
+                foreach(var playerengine in PlayerEngines)
+                {
+                    playerengine.EndOfDayReport();
                 }
                 foreach(var playerengine in PlayerEngines)
                 {

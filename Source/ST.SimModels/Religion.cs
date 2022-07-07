@@ -10,14 +10,31 @@ namespace ST.SimModels
     {
         public Guid Id;
         public string Name { get; set; }
+        public int Divinity { get; set; }
         public List<Scripture> Scriptures { get; set; }
         public virtual List<Tenant> Tenants { get; set; }
+        public virtual List<Person> Followers { get; set; }
 
         public Religion()
         {
             Id = Guid.NewGuid();
             Scriptures = new List<Scripture>();
             Tenants = new List<Tenant>();
+            Followers = new List<Person>();
+        }
+
+        public override string ToString()
+        {
+            return Name;
+        }
+
+        public override string About()
+        {
+            var str = "Religion of " + Name + Environment.NewLine +
+                "Pages of Scripture: " + Scriptures.Count.ToString();
+            foreach (var t in Tenants)
+                str += Environment.NewLine + t.ToString();
+            return str;
         }
     }
 
